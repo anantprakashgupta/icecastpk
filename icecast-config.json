@@ -1,0 +1,8 @@
+{
+  "ICECAST": {
+    "host": "208.109.234.82",
+    "port": "8000",
+    "password": "hackme",
+    "mount": "live"
+  }
+}

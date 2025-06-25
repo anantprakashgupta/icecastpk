@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Live Streaming</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <style>
+   
+  </style>
+</head>
+<body>
+  <header>
+    🎧 Live Streaming Controller
+  </header>
+
+  <main>
+    <button id="mergeBtn">🔀 Merge Songs</button>
+    <button id="setupBtn">⚙️ Streaming Setup</button>
+
+    <div id="nowPlaying">Loading current song...</div>
+    <div id="songList"></div>
+  </main>
+
+  <div class="popup" id="setupPopup">
+    <span class="close-btn" id="closePopup">❌</span>
+    <h3>ICECAST Setup</h3>
+    <input type="text" id="host" placeholder="Host (e.g. 127.0.0.1)" />
+    <input type="number" id="port" placeholder="Port (e.g. 8000)" />
+    <input type="text" id="password" placeholder="Password" />
+    <input type="text" id="mount" placeholder="Mount (e.g. live)" />
+    <button id="saveSetup">💾 Save Settings</button>
+  </div>
+  
+  <div id="footer">© Mehfil Music</div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io();
+
+    socket.on('now-playing', (song) => {
+  document.getElementById('nowPlaying').innerHTML = `
+    <img src="/cd.png" alt="Now Playing" class="rotating-img" />
+    <span>Now Playing: ${song}</span>
+  `;
+});
+
+    document.getElementById('mergeBtn').addEventListener('click', () => {
+      fetch('/merge-songs', { method: 'POST' })
+        .then(res => res.json())
+        .then(data =>  Swal.fire({
+      title: "Merged songs",
+      text: "Song successfully Merged!",
+      icon: "success"
+    }));
+    });
+
+    const setupBtn = document.getElementById('setupBtn');
+    const setupPopup = document.getElementById('setupPopup');
+    const saveSetup = document.getElementById('saveSetup');
+
+    setupBtn.addEventListener('click', () => {
+      setupPopup.style.display = 'block';
+    });
+
+    saveSetup.addEventListener('click', () => {
+      const host = document.getElementById('host').value;
+      const port = document.getElementById('port').value;
+      const password = document.getElementById('password').value;
+      const mount = document.getElementById('mount').value;
+
+      if (!host || !port || !password || !mount) {
+        alert("Please fill in all fields.");
+        return;
+      }
+      fetch('/update-icecast', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ host, port, password, mount }),
+      })
+        .then(res => res.json())
+        .then(data => {
+          Swal.fire({
+            title: "Saved",
+            text: data.message,
+            icon: "success"
+          });
+          setupPopup.style.display = 'none';
+        });
+    });
+  </script>
+</body>
+</html>
